@@ -41,10 +41,14 @@ def create_frames_from_position(im,im_dims,positions,time_grid):
     px2m_y = im.shape[1]/im_dims[1]
     positions_px = [ (np.round(px2m_x*pos[0]).astype(int),np.round(px2m_y*pos[1]).astype(int)) for pos in positions ]
 
-    plt.plot([ pos[0] for pos in positions_px ])
-    plt.plot([ pos[1] for pos in positions_px ])
+    # TODO: downsample to reasonable size, maybe?
+
+    plt.plot(time_grid.flatten(),[ pos[0] for pos in positions_px ])
+    plt.plot(time_grid.flatten(),[ pos[1] for pos in positions_px ])
     plt.show()
     print(im.shape)
+
+    input()
 
     # Find the max displacements to zeropad image to this new size
     dxmax = max(np.abs(positions_px),key=lambda t: t[0])[0]
@@ -54,7 +58,8 @@ def create_frames_from_position(im,im_dims,positions,time_grid):
     # First frame is zero-padded original image
     frame0 = np.pad(im,((dmax,dmax),(dmax,dmax)),mode='constant')
 
-    kspace = np.zeros(time_grid.shape,dtype='complex')
+    # kspace = np.zeros(time_grid.shape,dtype='complex')
+    kspace = np.zeros(frame0.shape,dtype='complex')
     idx = 0
     prev_position = None
     for ii in range(time_grid.shape[0]):
@@ -64,20 +69,21 @@ def create_frames_from_position(im,im_dims,positions,time_grid):
             if prev_position != positions_px[idx]:
                 # Store prev position for next time around
                 prev_position = positions_px[idx]
-                
+
                 # Compute fft of frame
                 tmp = np.roll(frame0,positions_px[idx],axis=(0,1))
                 tmpfft = np.fft.fftshift(np.fft.fft2(tmp))
 
             # The frame is too big, so find the subarray that corresponds to
             # ii,jj, take the mean of the subarray and use this as px value.
-            tmp = np.array_split(tmpfft,time_grid.shape[0],axis=0)[ii]
-            tmp = np.array_split(tmp,time_grid.shape[1],axis=1)[jj]
-            kspace[ii,jj] = np.mean(tmp)
+            # tmp = np.array_split(tmpfft,time_grid.shape[0],axis=0)[ii]
+            # tmp = np.array_split(tmp,time_grid.shape[1],axis=1)[jj]
+            # kspace[ii,jj] = np.mean(tmp)
+            kspace[ii,jj] = tmpfft[ii,jj]
             idx += 1
         print('Status: [%d%%]\r' % (ii/time_grid.shape[0]*100),end='')
 
-    return(kspace)
+    return(kspace,frame0)
 
 def cartesian_acquire(im,im_dims,pos,time_grid):
 
@@ -87,9 +93,12 @@ def cartesian_acquire(im,im_dims,pos,time_grid):
         positions.append(((pos[0])(t),(pos[1])(t)))
 
     # Create frames for each time point t
-    kspace = create_frames_from_position(im,im_dims,positions,time_grid)
+    kspace,padded_im = create_frames_from_position(im,im_dims,positions,time_grid)
 
+    plt.subplot(1,2,1)
     plt.imshow(np.abs(np.fft.ifft2(kspace)),cmap='gray')
+    plt.subplot(1,2,2)
+    plt.imshow(padded_im,cmap='gray')
     plt.show()
 
 if __name__ == '__main__':
