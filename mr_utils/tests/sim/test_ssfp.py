@@ -2,6 +2,17 @@ import unittest
 import numpy as np
 import matplotlib.pyplot as plt
 
+class ArbitrarySpectraTestCase(unittest.TestCase):
+
+    def setUp(self):
+        from mr_utils.test_data.phantom import ssfp_2d_circle
+
+        self.phantom = ssfp_2d_circle()
+
+    def test_square(self):
+        plt.imshow(np.abs(self.phantom))
+        plt.show()
+
 class DictionaryTestCase(unittest.TestCase):
 
     def setUp(self):
