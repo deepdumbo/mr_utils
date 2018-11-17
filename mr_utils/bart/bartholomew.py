@@ -39,6 +39,7 @@ class BartholomewObject(object):
         self.commands = result.stdout.decode().replace('BART. Available commands are:','').split()
 
     def __getattr__(self,name,*args,**kwargs):
+
         def function(*args,**kwargs):
 
             # Make sure function user asked for is a BART function
