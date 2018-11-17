@@ -64,7 +64,10 @@ class GadgetronConfig(object):
         '''
 
         if classname is None:
-            classname = '%sGadget' % name
+            if 'Python' in name:
+                classname = 'PythonGadget'
+            else:
+                classname = '%sGadget' % name
 
         gadget = ET.SubElement(self.gadgetronStreamConfiguration,'gadget')
         name_el = ET.SubElement(gadget,'name')
@@ -75,6 +78,8 @@ class GadgetronConfig(object):
         if dll is None:
             if 'Grappa' in name:
                 dll_el.text = 'gadgetron_grappa'
+            elif 'Python' in name:
+                dll_el.text = 'gadgetron_python'
             else:
                 dll_el.text = 'gadgetron_mricore'
         else:

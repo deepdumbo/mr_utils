@@ -44,6 +44,14 @@ class GadgetronTestConfig(object):
             data = f.read()
         return(data)
 
+    @staticmethod
+    def python_config():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/config/python.xml').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+
 ## HDF5 FILES
 # For gadgetron
 class GadgetronClient(object):
